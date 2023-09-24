@@ -4,7 +4,8 @@ import requests
 
 app = Flask(__name__)
 
-PRODUCT_SERVICE_URL = "https://product-service-6w5b.onrender.com"
+#PRODUCT_SERVICE_URL = "https://product-service-6w5b.onrender.com"
+PRODUCT_SERVICE_URL = "http://127.0.0.1:5000"
 
 # Data for user carts
 user_carts = {
@@ -29,11 +30,13 @@ def add_to_cart(user_id, product_id):
     if response.status_code == 200:
         product_data = response.json()
         quantity = request.json.get("quantity", 1)
+        # change quantity to equal the user specified quantity
         user_cart = user_carts.get(user_id)
         if user_cart:
             item = next((i for i in user_cart["items"] if i["product_id"] == product_id), None)
             if item:
                 item["quantity"] += quantity
+                item["total_price"] += quantity * product_data["price"]
             else:
                 new_item = {
                     "product_id": product_id,
@@ -72,4 +75,4 @@ def remove_from_cart(user_id, product_id):
         return jsonify({"error": "Product not found"}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=6000)
