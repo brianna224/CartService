@@ -1,7 +1,10 @@
-from flask import Flask, jsonify
+# Brianna Patrick CMSC455   
+from flask import Flask, jsonify, request
+import requests
 
 app = Flask(__name__)
 
+PRODUCT_SERVICE_URL = "https://product-service-6w5b.onrender.com"
 
 # Data for user carts
 user_carts = {
@@ -21,9 +24,11 @@ def add_to_cart(user_id, product_id):
     # Get product information from the Product Service
     # Update the user's shopping cart with the product and quantity
     # Handle errors
-    quantity = request.json.get("quantity", 1)
-    product = next((p for p in products if p["id"] == product_id), None)
-    if product:
+    response = requests.get(f"{PRODUCT_SERVICE_URL}/products/{product_id}")
+
+    if response.status_code == 200:
+        product_data = response.json()
+        quantity = request.json.get("quantity", 1)
         user_cart = user_carts.get(user_id)
         if user_cart:
             item = next((i for i in user_cart["items"] if i["product_id"] == product_id), None)
@@ -32,23 +37,26 @@ def add_to_cart(user_id, product_id):
             else:
                 new_item = {
                     "product_id": product_id,
-                    "product_name": product["name"],
+                    "product_name": product_data["name"],
                     "quantity": quantity,
-                    "total_price": quantity * product["price"],
+                    "total_price": quantity * product_data["price"],
                 }
                 user_cart["items"].append(new_item)
-            user_cart["total_price"] += quantity * product["price"]
+            user_cart["total_price"] += quantity * product_data["price"]
             return jsonify(user_cart), 200
-    return jsonify({"error": "Product or user not found"}), 404
+    else:
+        return jsonify({"error": "Product not found"}), 404
 
 # Endpoint to remove a product from a user's cart
 @app.route('/cart/<int:user_id>/remove/<int:product_id>', methods=['POST'])
 def remove_from_cart(user_id, product_id):
     # Remove the specified quantity of the product from the user's cart
     # Handle errors if the product not found or if the quantity exceeds what's in the cart
-    quantity = request.json.get("quantity", 1)
-    product = next((p for p in products if p["id"] == product_id), None)
-    if product:
+    response = requests.get(f"{PRODUCT_SERVICE_URL}/products/{product_id}")
+
+    if response.status_code == 200:
+        product_data = response.json()
+        quantity = request.json.get("quantity", 1)
         user_cart = user_carts.get(user_id)
         if user_cart:
             item = next((i for i in user_cart["items"] if i["product_id"] == product_id), None)
@@ -58,9 +66,10 @@ def remove_from_cart(user_id, product_id):
                     user_cart["total_price"] -= item["total_price"]
                 else:
                     item["quantity"] -= quantity
-                    item["total_price"] -= quantity * product["price"]
+                    item["total_price"] -= quantity * product_data["price"]
                 return jsonify(user_cart), 200
-    return jsonify({"error": "Product or user not found"}), 404
+    else:
+        return jsonify({"error": "Product not found"}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
