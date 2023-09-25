@@ -1,2 +1,2 @@
-web: gunicorn product-service:app
+web: gunicorn cart-service:app
 
