@@ -4,8 +4,8 @@ import requests
 
 app = Flask(__name__)
 
-#PRODUCT_SERVICE_URL = "https://product-service-6w5b.onrender.com"
-PRODUCT_SERVICE_URL = "http://127.0.0.1:5000"
+PRODUCT_SERVICE_URL = "https://product-service-faid.onrender.com"
+#PRODUCT_SERVICE_URL = "http://127.0.0.1:5000"
 
 # Data for user carts
 user_carts = {
@@ -75,4 +75,4 @@ def remove_from_cart(user_id, product_id):
         return jsonify({"error": "Product not found"}), 404
 
 if __name__ == '__main__':
-    app.run(debug=True, port=6000)
+    #app.run(debug=True, port=6000)
